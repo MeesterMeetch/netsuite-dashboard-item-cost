@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSuite Dashboard Item Cost</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin: 10px 0;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin: 5px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .chart-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .insights-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .insights-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .insight-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .profit-positive { border-left-color: #27ae60; }
+        .profit-negative { border-left-color: #e74c3c; }
+        .profit-neutral { border-left-color: #f39c12; }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .comparison-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin: 2px;
+        }
+        
+        .tag-new { background: #e8f5e8; color: #27ae60; }
+        .tag-recert { background: #fff3e0; color: #f39c12; }
+        .tag-up { background: #e8f5e8; color: #27ae60; }
+        .tag-down { background: #ffeaea; color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🏢 NetSuite Dashboard Item Cost</h1>
+            <p>Comprehensive Analysis of 6,814 Items</p>
+            <p>📊 Sales & Purchase Trends • 💰 Profitability Analysis • 🔍 New vs ReCert Breakdown</p>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">32.21%</div>
+                <div class="metric-label">Average Margin</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">$5.4M</div>
+                <div class="metric-label">Total Profit</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">$14.4M</div>
+                <div class="metric-label">Total Revenue</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">367</div>
+                <div class="metric-label">Items Losing Money</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title">📈 Sales Order (SO) & Purchase Order (PO) Trends Over Time</div>
+            <div class="chart-wrapper">
+                <canvas id="trendsChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title">🆚 New vs ReCert: Sales & Purchase Comparison</div>
+            <div class="chart-wrapper">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="insights-grid">
+            <div class="insights-card">
+                <div class="insights-title">🎯 Top 5 Profit Generators</div>
+                <div class="insight-item profit-positive">
+                    <strong>CR460XP32:</strong> $92,311 profit (37.6% margin, 2,189 qty)
+                </div>
+                <div class="insight-item profit-positive">
+                    <strong>QOB360:</strong> $70,801 profit (45.9% margin, 1,289 qty)
+                </div>
+                <div class="insight-item profit-positive">
+                    <strong>BAB3030H:</strong> $66,813 profit (36.2% margin, 1,677 qty)
+                </div>
+                <div class="insight-item profit-positive">
+                    <strong>Q230:</strong> $65,050 profit (73.0% margin, 2,281 qty)
+                </div>
+                <div class="insight-item profit-positive">
+                    <strong>QOB220:</strong> $52,805 profit (51.1% margin, 2,940 qty)
+                </div>
+            </div>
+            
+            <div class="insights-card">
+                <div class="insights-title">⚠️ Top 5 Loss Makers</div>
+                <div class="insight-item profit-negative">
+                    <strong>GBM34:</strong> $503 loss (-14.8% margin, 73 qty)
+                </div>
+                <div class="insight-item profit-negative">
+                    <strong>TCF40RN:</strong> $458 loss (-308.5% margin, 9 qty)
+                </div>
+                <div class="insight-item profit-negative">
+                    <strong>QE130:</strong> $330 loss (-12.8% margin, 43 qty)
+                </div>
+                <div class="insight-item profit-negative">
+                    <strong>C320KA2:</strong> $259 loss (-119.7% margin, 5 qty)
+                </div>
+                <div class="insight-item profit-negative">
+                    <strong>TA1FD350A:</strong> $258 loss (-8.8% margin, 370 qty)
+                </div>
+            </div>
+        </div>
+        
+        <div class="insights-card">
+            <div class="insights-title">📊 New vs ReCert Performance Comparison</div>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>New Items <span class="tag tag-new">81.1%</span></th>
+                        <th>ReCert Items <span class="tag tag-recert">18.9%</span></th>
+                        <th>Winner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Total Quantity</strong></td>
+                        <td>278,380</td>
+                        <td>17,025</td>
+                        <td><span class="tag tag-new">New</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Avg Profit per Item</strong></td>
+                        <td>$29.06</td>
+                        <td>$26.04</td>
+                        <td><span class="tag tag-new">New</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Profit</strong></td>
+                        <td>$5,258,193</td>
+                        <td>$188,176</td>
+                        <td><span class="tag tag-new">New</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Avg Margin %</strong></td>
+                        <td>33.96%</td>
+                        <td>24.72%</td>
+                        <td><span class="tag tag-new">New</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Price Trend (360d→30d)</strong></td>
+                        <td><span class="tag tag-up">+15.4%</span></td>
+                        <td><span class="tag tag-up">+71.1%</span></td>
+                        <td><span class="tag tag-recert">ReCert</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="insights-card">
+            <div class="insights-title">🔍 Key Insights & Observations</div>
+            <div class="insight-item">
+                <strong>💡 Profitability Distribution:</strong> 367 items (5.4%) losing money, 589 items (8.7%) with margins ≤15%
+            </div>
+            <div class="insight-item">
+                <strong>📈 Price Trends:</strong> Both SO and PO prices increasing over time, indicating market inflation
+            </div>
+            <div class="insight-item">
+                <strong>🔄 ReCert Performance:</strong> Lower margins but stronger price appreciation than New items
+            </div>
+            <div class="insight-item">
+                <strong>📊 Data Quality:</strong> SO data more complete than PO data across all time periods
+            </div>
+            <div class="insight-item">
+                <strong>🎯 Action Items:</strong> Focus on fixing 367 negative margin items and review pricing on 589 low-margin items
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Trends Chart
+        const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+        const trendsData = [
+            { period: "360d", newSO: 75.46, recertSO: 72.62, newPO: 53.54, recertPO: 74.52, overallSO: 74.98, overallPO: 54.51 },
+            { period: "180d", newSO: 76.92, recertSO: 85.33, newPO: 52.98, recertPO: 118.12, overallSO: 77.97, overallPO: 55.32 },
+            { period: "90d", newSO: 79.31, recertSO: 96.26, newPO: 54.07, recertPO: 165.80, overallSO: 81.11, overallPO: 57.52 },
+            { period: "60d", newSO: 80.74, recertSO: 111.50, newPO: 54.46, recertPO: 219.80, overallSO: 83.71, overallPO: 59.41 },
+            { period: "30d", newSO: 87.07, recertSO: 124.23, newPO: 56.23, recertPO: 249.47, overallSO: 89.77, overallPO: 60.70 }
+        ];
+
+        new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: trendsData.map(d => d.period),
+                datasets: [
+                    {
+                        label: 'Overall Sales Orders',
+                        data: trendsData.map(d => d.overallSO),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 4,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Overall Purchase Orders',
+                        data: trendsData.map(d => d.overallPO),
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 4,
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: { size: 14 }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Average Price ($)',
+                            font: { size: 14 }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(0);
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time Period',
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Comparison Chart
+        const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+        new Chart(comparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: trendsData.map(d => d.period),
+                datasets: [
+                    {
+                        label: 'New Items SO',
+                        data: trendsData.map(d => d.newSO),
+                        backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                        borderColor: '#2ecc71',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'ReCert Items SO',
+                        data: trendsData.map(d => d.recertSO),
+                        backgroundColor: 'rgba(243, 156, 18, 0.8)',
+                        borderColor: '#f39c12',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'New Items PO',
+                        data: trendsData.map(d => d.newPO),
+                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                        borderColor: '#3498db',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'ReCert Items PO',
+                        data: trendsData.map(d => d.recertPO),
+                        backgroundColor: 'rgba(155, 89, 182, 0.6)',
+                        borderColor: '#9b59b6',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Average Price ($)',
+                            font: { size: 14 }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(0);
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time Period',
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
