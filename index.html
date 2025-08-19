@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetSuite Dashboard Item Cost</title>
+    <title>NetSuite Dashboard Item Cost - Enhanced</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 10px;
         }
         
         .dashboard {
@@ -22,31 +28,108 @@
         .header {
             text-align: center;
             color: white;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .header h1 {
-            font-size: 2.5em;
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
             margin: 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .header p {
-            font-size: 1.2em;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
             opacity: 0.9;
             margin: 10px 0;
         }
         
+        .update-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .data-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .timestamp {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .contact-info {
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        
+        .upload-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .file-input-label:hover {
+            background: #2980b9;
+        }
+        
+        .export-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .export-btn:hover {
+            background: #229954;
+        }
+        
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
         .metric-card {
             background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
@@ -60,14 +143,14 @@
         }
         
         .metric-value {
-            font-size: 2.5em;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
             font-weight: bold;
             color: #2c3e50;
             margin: 0;
         }
         
         .metric-label {
-            font-size: 0.9em;
+            font-size: 0.8rem;
             color: #7f8c8d;
             margin: 5px 0 0 0;
             text-transform: uppercase;
@@ -76,38 +159,38 @@
         
         .chart-container {
             background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .chart-title {
-            font-size: 1.5em;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
             font-weight: 600;
         }
         
         .chart-wrapper {
             position: relative;
-            height: 400px;
-            margin-bottom: 20px;
+            height: 300px;
+            margin-bottom: 15px;
         }
         
         .insights-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
         }
         
         .insights-card {
             background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
@@ -115,7 +198,7 @@
         }
         
         .insights-title {
-            font-size: 1.3em;
+            font-size: clamp(1rem, 3vw, 1.3rem);
             color: #2c3e50;
             margin-bottom: 15px;
             font-weight: 600;
@@ -127,6 +210,7 @@
             background: #f8f9fa;
             border-radius: 8px;
             border-left: 4px solid #3498db;
+            font-size: 0.9rem;
         }
         
         .profit-positive { border-left-color: #27ae60; }
@@ -137,11 +221,12 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            font-size: 0.9rem;
         }
         
         .comparison-table th,
         .comparison-table td {
-            padding: 12px;
+            padding: 8px;
             text-align: center;
             border-bottom: 1px solid #ecf0f1;
         }
@@ -158,9 +243,9 @@
         
         .tag {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
             font-weight: 600;
             margin: 2px;
         }
@@ -169,31 +254,186 @@
         .tag-recert { background: #fff3e0; color: #f39c12; }
         .tag-up { background: #e8f5e8; color: #27ae60; }
         .tag-down { background: #ffeaea; color: #e74c3c; }
+        
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        .status-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .dashboard {
+                max-width: 100%;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+            }
+            
+            .metric-card {
+                padding: 15px;
+            }
+            
+            .chart-container {
+                padding: 15px;
+            }
+            
+            .chart-wrapper {
+                height: 250px;
+            }
+            
+            .insights-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .insights-card {
+                padding: 15px;
+            }
+            
+            .data-info {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            
+            .upload-section {
+                justify-content: center;
+            }
+            
+            .comparison-table {
+                font-size: 0.8rem;
+            }
+            
+            .comparison-table th,
+            .comparison-table td {
+                padding: 6px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .chart-wrapper {
+                height: 200px;
+            }
+            
+            .file-input-label,
+            .export-btn {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .update-section,
+            .export-btn,
+            .file-input-wrapper {
+                display: none;
+            }
+            
+            .chart-container,
+            .metric-card,
+            .insights-card {
+                background: white;
+                box-shadow: none;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+            
+            .header {
+                color: black;
+            }
+            
+            .header h1 {
+                text-shadow: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="header">
             <h1>🏢 NetSuite Dashboard Item Cost</h1>
-            <p>Comprehensive Analysis of 6,814 Items</p>
-            <p>📊 Sales & Purchase Trends • 💰 Profitability Analysis • 🔍 New vs ReCert Breakdown</p>
+            <p>Comprehensive Analysis of Item Profitability & Trends</p>
+        </div>
+        
+        <div class="update-section">
+            <div class="data-info">
+                <div class="timestamp" id="dataTimestamp">
+                    📅 Data as of: August 19, 2025
+                </div>
+                <div class="contact-info">
+                    📧 Questions? Contact Bryan (Engineer) | 📊 Dashboard by Claude AI
+                </div>
+            </div>
+            
+            <div class="upload-section">
+                <div class="file-input-wrapper">
+                    <input type="file" id="csvFileInput" class="file-input" accept=".csv" />
+                    <label for="csvFileInput" class="file-input-label">
+                        📁 Upload New CSV Data
+                    </label>
+                </div>
+                <button onclick="exportToPDF()" class="export-btn">
+                    📄 Export to PDF
+                </button>
+                <button onclick="window.print()" class="export-btn">
+                    🖨️ Print Dashboard
+                </button>
+            </div>
+            <div id="statusMessage"></div>
         </div>
         
         <div class="metrics-grid">
             <div class="metric-card">
-                <div class="metric-value">32.21%</div>
+                <div class="metric-value" id="avgMargin">32.21%</div>
                 <div class="metric-label">Average Margin</div>
             </div>
             <div class="metric-card">
-                <div class="metric-value">$5.4M</div>
+                <div class="metric-value" id="totalProfit">$5.4M</div>
                 <div class="metric-label">Total Profit</div>
             </div>
             <div class="metric-card">
-                <div class="metric-value">$14.4M</div>
+                <div class="metric-value" id="totalRevenue">$14.4M</div>
                 <div class="metric-label">Total Revenue</div>
             </div>
             <div class="metric-card">
-                <div class="metric-value">367</div>
+                <div class="metric-value" id="losingItems">367</div>
                 <div class="metric-label">Items Losing Money</div>
             </div>
         </div>
@@ -215,39 +455,43 @@
         <div class="insights-grid">
             <div class="insights-card">
                 <div class="insights-title">🎯 Top 5 Profit Generators</div>
-                <div class="insight-item profit-positive">
-                    <strong>CR460XP32:</strong> $92,311 profit (37.6% margin, 2,189 qty)
-                </div>
-                <div class="insight-item profit-positive">
-                    <strong>QOB360:</strong> $70,801 profit (45.9% margin, 1,289 qty)
-                </div>
-                <div class="insight-item profit-positive">
-                    <strong>BAB3030H:</strong> $66,813 profit (36.2% margin, 1,677 qty)
-                </div>
-                <div class="insight-item profit-positive">
-                    <strong>Q230:</strong> $65,050 profit (73.0% margin, 2,281 qty)
-                </div>
-                <div class="insight-item profit-positive">
-                    <strong>QOB220:</strong> $52,805 profit (51.1% margin, 2,940 qty)
+                <div id="topProfitItems">
+                    <div class="insight-item profit-positive">
+                        <strong>CR460XP32:</strong> $92,311 profit (37.6% margin, 2,189 qty)
+                    </div>
+                    <div class="insight-item profit-positive">
+                        <strong>QOB360:</strong> $70,801 profit (45.9% margin, 1,289 qty)
+                    </div>
+                    <div class="insight-item profit-positive">
+                        <strong>BAB3030H:</strong> $66,813 profit (36.2% margin, 1,677 qty)
+                    </div>
+                    <div class="insight-item profit-positive">
+                        <strong>Q230:</strong> $65,050 profit (73.0% margin, 2,281 qty)
+                    </div>
+                    <div class="insight-item profit-positive">
+                        <strong>QOB220:</strong> $52,805 profit (51.1% margin, 2,940 qty)
+                    </div>
                 </div>
             </div>
             
             <div class="insights-card">
                 <div class="insights-title">⚠️ Top 5 Loss Makers</div>
-                <div class="insight-item profit-negative">
-                    <strong>GBM34:</strong> $503 loss (-14.8% margin, 73 qty)
-                </div>
-                <div class="insight-item profit-negative">
-                    <strong>TCF40RN:</strong> $458 loss (-308.5% margin, 9 qty)
-                </div>
-                <div class="insight-item profit-negative">
-                    <strong>QE130:</strong> $330 loss (-12.8% margin, 43 qty)
-                </div>
-                <div class="insight-item profit-negative">
-                    <strong>C320KA2:</strong> $259 loss (-119.7% margin, 5 qty)
-                </div>
-                <div class="insight-item profit-negative">
-                    <strong>TA1FD350A:</strong> $258 loss (-8.8% margin, 370 qty)
+                <div id="bottomProfitItems">
+                    <div class="insight-item profit-negative">
+                        <strong>GBM34:</strong> $503 loss (-14.8% margin, 73 qty)
+                    </div>
+                    <div class="insight-item profit-negative">
+                        <strong>TCF40RN:</strong> $458 loss (-308.5% margin, 9 qty)
+                    </div>
+                    <div class="insight-item profit-negative">
+                        <strong>QE130:</strong> $330 loss (-12.8% margin, 43 qty)
+                    </div>
+                    <div class="insight-item profit-negative">
+                        <strong>C320KA2:</strong> $259 loss (-119.7% margin, 5 qty)
+                    </div>
+                    <div class="insight-item profit-negative">
+                        <strong>TA1FD350A:</strong> $258 loss (-8.8% margin, 370 qty)
+                    </div>
                 </div>
             </div>
         </div>
@@ -263,7 +507,7 @@
                         <th>Winner</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="comparisonTableBody">
                     <tr>
                         <td><strong>Total Quantity</strong></td>
                         <td>278,380</td>
@@ -319,165 +563,403 @@
     </div>
 
     <script>
-        // Trends Chart
-        const trendsCtx = document.getElementById('trendsChart').getContext('2d');
-        const trendsData = [
-            { period: "360d", newSO: 75.46, recertSO: 72.62, newPO: 53.54, recertPO: 74.52, overallSO: 74.98, overallPO: 54.51 },
-            { period: "180d", newSO: 76.92, recertSO: 85.33, newPO: 52.98, recertPO: 118.12, overallSO: 77.97, overallPO: 55.32 },
-            { period: "90d", newSO: 79.31, recertSO: 96.26, newPO: 54.07, recertPO: 165.80, overallSO: 81.11, overallPO: 57.52 },
-            { period: "60d", newSO: 80.74, recertSO: 111.50, newPO: 54.46, recertPO: 219.80, overallSO: 83.71, overallPO: 59.41 },
-            { period: "30d", newSO: 87.07, recertSO: 124.23, newPO: 56.23, recertPO: 249.47, overallSO: 89.77, overallPO: 60.70 }
-        ];
-
-        new Chart(trendsCtx, {
-            type: 'line',
-            data: {
-                labels: trendsData.map(d => d.period),
-                datasets: [
-                    {
-                        label: 'Overall Sales Orders',
-                        data: trendsData.map(d => d.overallSO),
-                        borderColor: '#3498db',
-                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                        borderWidth: 4,
-                        fill: false,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Overall Purchase Orders',
-                        data: trendsData.map(d => d.overallPO),
-                        borderColor: '#e74c3c',
-                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                        borderWidth: 4,
-                        fill: false,
-                        tension: 0.4
-                    }
-                ]
+        // Default dashboard data - easily updatable
+        let dashboardData = {
+            lastUpdated: "August 19, 2025",
+            metrics: {
+                avgMargin: 32.21,
+                totalProfit: 5446368.847,
+                totalRevenue: 14444187.626,
+                losingItems: 367
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            font: { size: 14 }
-                        }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Average Price ($)',
-                            font: { size: 14 }
+            trendsData: [
+                { period: "360d", overallSO: 74.98, overallPO: 54.51 },
+                { period: "180d", overallSO: 77.97, overallPO: 55.32 },
+                { period: "90d", overallSO: 81.11, overallPO: 57.52 },
+                { period: "60d", overallSO: 83.71, overallPO: 59.41 },
+                { period: "30d", overallSO: 89.77, overallPO: 60.70 }
+            ],
+            comparisonData: [
+                { period: "360d", newSO: 75.46, recertSO: 72.62, newPO: 53.54, recertPO: 74.52 },
+                { period: "180d", newSO: 76.92, recertSO: 85.33, newPO: 52.98, recertPO: 118.12 },
+                { period: "90d", newSO: 79.31, recertSO: 96.26, newPO: 54.07, recertPO: 165.80 },
+                { period: "60d", newSO: 80.74, recertSO: 111.50, newPO: 54.46, recertPO: 219.80 },
+                { period: "30d", newSO: 87.07, recertSO: 124.23, newPO: 56.23, recertPO: 249.47 }
+            ]
+        };
+
+        let trendsChart, comparisonChart;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+            initializeCharts();
+            setupFileUpload();
+        });
+
+        // Update dashboard with current data
+        function updateDashboard() {
+            document.getElementById('dataTimestamp').textContent = `📅 Data as of: ${dashboardData.lastUpdated}`;
+            document.getElementById('avgMargin').textContent = `${dashboardData.metrics.avgMargin.toFixed(2)}%`;
+            document.getElementById('totalProfit').textContent = `$${(dashboardData.metrics.totalProfit / 1000000).toFixed(1)}M`;
+            document.getElementById('totalRevenue').textContent = `$${(dashboardData.metrics.totalRevenue / 1000000).toFixed(1)}M`;
+            document.getElementById('losingItems').textContent = dashboardData.metrics.losingItems;
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            createTrendsChart();
+            createComparisonChart();
+        }
+
+        // Create trends chart
+        function createTrendsChart() {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            
+            if (trendsChart) {
+                trendsChart.destroy();
+            }
+            
+            trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dashboardData.trendsData.map(d => d.period),
+                    datasets: [
+                        {
+                            label: 'Overall Sales Orders',
+                            data: dashboardData.trendsData.map(d => d.overallSO),
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 4,
+                            fill: false,
+                            tension: 0.4
                         },
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value.toFixed(0);
+                        {
+                            label: 'Overall Purchase Orders',
+                            data: dashboardData.trendsData.map(d => d.overallPO),
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 4,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                                }
                             }
                         }
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time Period',
-                            font: { size: 14 }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Average Price ($)',
+                                font: { size: 12 }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                font: { size: 12 }
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
 
-        // Comparison Chart
-        const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
-        new Chart(comparisonCtx, {
-            type: 'bar',
-            data: {
-                labels: trendsData.map(d => d.period),
-                datasets: [
-                    {
-                        label: 'New Items SO',
-                        data: trendsData.map(d => d.newSO),
-                        backgroundColor: 'rgba(46, 204, 113, 0.8)',
-                        borderColor: '#2ecc71',
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'ReCert Items SO',
-                        data: trendsData.map(d => d.recertSO),
-                        backgroundColor: 'rgba(243, 156, 18, 0.8)',
-                        borderColor: '#f39c12',
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'New Items PO',
-                        data: trendsData.map(d => d.newPO),
-                        backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                        borderColor: '#3498db',
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'ReCert Items PO',
-                        data: trendsData.map(d => d.recertPO),
-                        backgroundColor: 'rgba(155, 89, 182, 0.6)',
-                        borderColor: '#9b59b6',
-                        borderWidth: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            font: { size: 12 }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Average Price ($)',
-                            font: { size: 14 }
+        // Create comparison chart
+        function createComparisonChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+            
+            comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dashboardData.comparisonData.map(d => d.period),
+                    datasets: [
+                        {
+                            label: 'New Items SO',
+                            data: dashboardData.comparisonData.map(d => d.newSO),
+                            backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                            borderColor: '#2ecc71',
+                            borderWidth: 2
                         },
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value.toFixed(0);
+                        {
+                            label: 'ReCert Items SO',
+                            data: dashboardData.comparisonData.map(d => d.recertSO),
+                            backgroundColor: 'rgba(243, 156, 18, 0.8)',
+                            borderColor: '#f39c12',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'New Items PO',
+                            data: dashboardData.comparisonData.map(d => d.newPO),
+                            backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                            borderColor: '#3498db',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'ReCert Items PO',
+                            data: dashboardData.comparisonData.map(d => d.recertPO),
+                            backgroundColor: 'rgba(155, 89, 182, 0.6)',
+                            borderColor: '#9b59b6',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                                }
                             }
                         }
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time Period',
-                            font: { size: 14 }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Average Price ($)',
+                                font: { size: 12 }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                font: { size: 12 }
+                            }
                         }
                     }
                 }
+            });
+        }
+
+        // Setup file upload functionality
+        function setupFileUpload() {
+            document.getElementById('csvFileInput').addEventListener('change', handleFileUpload);
+        }
+
+        // Handle CSV file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showStatus('Processing new data...', 'info');
+
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    try {
+                        processNewData(results.data);
+                        showStatus('✅ Data updated successfully! Dashboard refreshed with new information.', 'success');
+                    } catch (error) {
+                        showStatus('❌ Error processing file: ' + error.message, 'error');
+                    }
+                },
+                error: function(error) {
+                    showStatus('❌ Error reading file: ' + error.message, 'error');
+                }
+            });
+        }
+
+        // Process new CSV data and update dashboard
+        function processNewData(data) {
+            // Basic validation
+            if (!data || data.length === 0) {
+                throw new Error('No data found in file');
             }
-        });
+
+            // Validate required columns
+            const requiredColumns = ['Item', 'Quantity', 'Average Item Rate', 'Average of Est. Unit Cost'];
+            const firstRow = data[0];
+            const missingColumns = requiredColumns.filter(col => !(col in firstRow));
+            
+            if (missingColumns.length > 0) {
+                throw new Error('Missing required columns: ' + missingColumns.join(', '));
+            }
+
+            // Update timestamp
+            dashboardData.lastUpdated = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
+            // Calculate new metrics
+            const validItems = data.filter(item => 
+                item['Average Item Rate'] && item['Average of Est. Unit Cost']
+            ).map(item => {
+                const rate = item['Average Item Rate'];
+                const cost = item['Average of Est. Unit Cost'];
+                const quantity = item.Quantity || 0;
+                
+                return {
+                    ...item,
+                    profitMargin: ((rate - cost) / rate * 100),
+                    profitPerUnit: (rate - cost),
+                    totalProfit: (rate - cost) * quantity,
+                    totalRevenue: rate * quantity,
+                    totalCost: cost * quantity,
+                    itemType: item.Item && item.Item.includes('ReCert') ? 'ReCert' : 'New'
+                };
+            });
+
+            // Update metrics
+            const avgMargin = validItems.reduce((sum, item) => sum + item.profitMargin, 0) / validItems.length;
+            const totalProfit = validItems.reduce((sum, item) => sum + item.totalProfit, 0);
+            const totalRevenue = validItems.reduce((sum, item) => sum + item.totalRevenue, 0);
+            const losingItems = validItems.filter(item => item.profitMargin < 0).length;
+
+            dashboardData.metrics = {
+                avgMargin: avgMargin,
+                totalProfit: totalProfit,
+                totalRevenue: totalRevenue,
+                losingItems: losingItems
+            };
+
+            // Update trends data (simplified - you could make this more sophisticated)
+            updateTrendsFromData(data);
+
+            // Refresh dashboard
+            updateDashboard();
+            initializeCharts();
+            updateTopBottomItems(validItems);
+        }
+
+        // Update trends data from CSV
+        function updateTrendsFromData(data) {
+            const timePeriods = ['30 Days', '60 Days', '90 Days', '180 Days', '360 Days'];
+            
+            dashboardData.trendsData = timePeriods.map(period => {
+                const soData = data.filter(item => item[`${period} Average SO`] !== null && item[`${period} Average SO`] !== "—");
+                const poData = data.filter(item => item[`${period} Average PO`] !== null && item[`${period} Average PO`] !== "—");
+                
+                const avgSO = soData.length > 0 ? 
+                    soData.reduce((sum, item) => sum + item[`${period} Average SO`], 0) / soData.length : 0;
+                const avgPO = poData.length > 0 ? 
+                    poData.reduce((sum, item) => sum + item[`${period} Average PO`], 0) / poData.length : 0;
+                
+                return {
+                    period: period.replace(' Days', 'd'),
+                    overallSO: avgSO,
+                    overallPO: avgPO
+                };
+            }).reverse(); // Reverse to show 360d first
+        }
+
+        // Update top/bottom items display
+        function updateTopBottomItems(validItems) {
+            // Sort by total profit
+            const sortedByProfit = validItems.sort((a, b) => b.totalProfit - a.totalProfit);
+            
+            // Update top 5 profit makers
+            const topItems = sortedByProfit.slice(0, 5);
+            const topItemsHTML = topItems.map(item => {
+                const itemCode = item.Item ? item.Item.split(' : ')[0] : 'Unknown';
+                return `<div class="insight-item profit-positive">
+                    <strong>${itemCode}:</strong> $${Math.abs(item.totalProfit).toLocaleString()} profit 
+                    (${item.profitMargin.toFixed(1)}% margin, ${item.Quantity} qty)
+                </div>`;
+            }).join('');
+            document.getElementById('topProfitItems').innerHTML = topItemsHTML;
+            
+            // Update bottom 5 (biggest losses)
+            const bottomItems = sortedByProfit.slice(-5).reverse();
+            const bottomItemsHTML = bottomItems.map(item => {
+                const itemCode = item.Item ? item.Item.split(' : ')[0] : 'Unknown';
+                const lossOrProfit = item.totalProfit < 0 ? 'loss' : 'profit';
+                return `<div class="insight-item profit-negative">
+                    <strong>${itemCode}:</strong> $${Math.abs(item.totalProfit).toLocaleString()} ${lossOrProfit} 
+                    (${item.profitMargin.toFixed(1)}% margin, ${item.Quantity} qty)
+                </div>`;
+            }).join('');
+            document.getElementById('bottomProfitItems').innerHTML = bottomItemsHTML;
+        }
+
+        // Show status messages
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Export to PDF functionality
+        function exportToPDF() {
+            // Hide upload section and status messages for clean export
+            const uploadSection = document.querySelector('.update-section');
+            const originalDisplay = uploadSection.style.display;
+            uploadSection.style.display = 'none';
+            
+            // Trigger print (which can be saved as PDF)
+            window.print();
+            
+            // Restore upload section
+            setTimeout(() => {
+                uploadSection.style.display = originalDisplay;
+            }, 1000);
+        }
+
+        // Utility function to format numbers
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            }
+            return num.toLocaleString();
+        }
     </script>
 </body>
 </html>
