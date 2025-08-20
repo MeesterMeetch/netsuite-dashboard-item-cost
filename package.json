@@ -30,12 +30,12 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/netsuites-dashboard.git"
+    "url": "git+https://github.com/your-username/netsuites-business-intelligence.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/netsuites-dashboard/issues"
+    "url": "https://github.com/your-username/netsuites-business-intelligence/issues"
   },
-  "homepage": "https://github.com/your-username/netsuites-dashboard#readme",
+  "homepage": "https://github.com/your-username/netsuites-business-intelligence#readme",
   "dependencies": {},
   "devDependencies": {},
   "engines": {
