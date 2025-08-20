@@ -45,13 +45,24 @@
         }
         
         .update-section {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 15px;
             border-radius: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .content-wrapper {
+            margin-top: 200px;
         }
         
         .data-info {
@@ -608,7 +619,7 @@
                     📅 Data as of: August 19, 2025
                 </div>
                 <div class="contact-info">
-                    📧 Questions? Contact Mitch Hunt or Bryan Badilla | 📊 Dashboard by Claude AI
+                    📧 Questions? Contact Mitch Hunt or Bryan Badilla
                 </div>
             </div>
             
@@ -654,6 +665,8 @@
             
             <div id="statusMessage"></div>
         </div>
+        
+        <div class="content-wrapper">
         
         <div class="metrics-grid">
             <div class="metric-card">
@@ -885,6 +898,8 @@
                 <strong>🎯 Action Items:</strong> Focus on fixing 367 negative margin items and review pricing on 589 low-margin items
             </div>
         </div>
+        
+        </div> <!-- End content-wrapper -->
     </div>
 
     <script>
