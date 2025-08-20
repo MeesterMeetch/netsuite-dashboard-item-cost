@@ -1,2 +1,2 @@
-# netsuite-dashboard-item-cost
-NetSuite Item Cost Analysis Dashboard
+# netsuites-business-intelligence
+NetSuite Report Analysis Dashboard
